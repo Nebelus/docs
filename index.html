@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nebelus Examples & Tutorials</title>
+  <meta name="description" content="Live examples and tutorials for the Nebelus AI platform - real-time translation, voice conversation, and agent chat.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="https://storage.googleapis.com/nebelus-public/logo.png">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600">
+  <div class="container mx-auto px-4 py-12">
+    <!-- Header -->
+    <div class="text-center mb-16">
+      <div class="flex items-center justify-center mb-6">
+        <img src="https://storage.googleapis.com/nebelus-public/logo.png" alt="Nebelus" class="h-20 w-auto">
+      </div>
+      <h1 class="text-5xl font-bold text-white mb-4">Nebelus Examples</h1>
+      <p class="text-xl text-white/90 max-w-2xl mx-auto">
+        Live demos and tutorials for building with the Nebelus AI platform
+      </p>
+      <div class="mt-6 flex gap-4 justify-center flex-wrap">
+        <a href="https://nebelus.ai" class="px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+          Main Site
+        </a>
+        <a href="https://github.com/Nebelus/examples" class="px-6 py-3 bg-white/10 backdrop-blur text-white rounded-lg font-semibold hover:bg-white/20 transition-all border-2 border-white/30">
+          GitHub Repository
+        </a>
+        <a href="https://docs.nebelus.ai" class="px-6 py-3 bg-white/10 backdrop-blur text-white rounded-lg font-semibold hover:bg-white/20 transition-all border-2 border-white/30">
+          Documentation
+        </a>
+      </div>
+    </div>
+
+    <!-- Examples Grid -->
+    <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+      <!-- Vanilla JS Translation App -->
+      <div class="bg-white rounded-xl shadow-2xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+          <div class="flex items-center gap-3 mb-2">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+            </svg>
+            <h2 class="text-2xl font-bold">Vanilla JavaScript</h2>
+          </div>
+          <p class="text-blue-100">Real-time Translation App</p>
+        </div>
+        <div class="p-6">
+          <p class="text-gray-600 mb-6">
+            Full-featured translation application built with pure JavaScript. No frameworks, no build tools - just open and run!
+          </p>
+          <div class="space-y-3 mb-6">
+            <div class="flex items-center gap-2 text-sm text-gray-700">
+              <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span>WebSocket-based real-time translation</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-700">
+              <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span>Speaker diarization (S1, S2)</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-700">
+              <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span>Text-to-Speech audio playback</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-700">
+              <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span>Voice conversation & agent chat</span>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <a href="./vanillajs/index.html" class="flex-1 text-center px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all">
+              Launch Demo
+            </a>
+            <a href="./vanillajs/readme.md" class="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all">
+              Docs
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vue Translation App -->
+      <div class="bg-white rounded-xl shadow-2xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300">
+        <div class="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
+          <div class="flex items-center gap-3 mb-2">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+            </svg>
+            <h2 class="text-2xl font-bold">Vue 3</h2>
+          </div>
+          <p class="text-green-100">Translation App (Standalone)</p>
+        </div>
+        <div class="p-6">
+          <p class="text-gray-600 mb-6">
+            The same translation app built with Vue 3 Composition API. Runs directly from CDN - no build required!
+          </p>
+          <div class="space-y-3 mb-6">
+            <div class="flex items-center gap-2 text-sm text-gray-700">
+              <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span>Vue 3 Composition API</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-700">
+              <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span>Reactive state management</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-700">
+              <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span>Loaded from CDN (no build step)</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-700">
+              <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span>Includes TranslationApp.vue SFC</span>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <a href="./vue/translation-app.html" class="flex-1 text-center px-4 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all">
+              Launch Demo
+            </a>
+            <a href="#vue-docs" class="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all">
+              Docs
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Getting Started -->
+    <div class="mt-16 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-8">
+      <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+        <svg class="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path>
+        </svg>
+        Getting Started
+      </h2>
+
+      <div class="space-y-6">
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-3">Prerequisites</h3>
+          <ul class="list-disc list-inside space-y-2 text-gray-600">
+            <li>A Nebelus API key (format: <code class="bg-gray-100 px-2 py-1 rounded text-sm">sk-ns-org-...</code>)</li>
+            <li>Modern browser with microphone access</li>
+            <li>HTTPS or localhost (required for getUserMedia API)</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-3">Quick Start</h3>
+          <ol class="list-decimal list-inside space-y-2 text-gray-600">
+            <li>Click "Launch Demo" on any example above</li>
+            <li>Enter your Nebelus API key</li>
+            <li>Click "Connect" to establish WebSocket connection</li>
+            <li>Click "Start Translation" and allow microphone access</li>
+            <li>Speak naturally and watch real-time translation!</li>
+          </ol>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-3">Local Development</h3>
+          <div class="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+            <div class="mb-2 text-gray-400"># Clone the repository</div>
+            <div class="mb-4">git clone https://github.com/Nebelus/examples.git</div>
+
+            <div class="mb-2 text-gray-400"># Serve vanilla JS example</div>
+            <div class="mb-4">cd examples && make vanilla-js</div>
+
+            <div class="mb-2 text-gray-400"># Or serve Vue example</div>
+            <div>make vue-html</div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-3">Resources</h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <a href="https://docs.nebelus.ai" class="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-600 transition-all">
+              <div class="font-semibold text-gray-800 mb-1">📚 Documentation</div>
+              <div class="text-sm text-gray-600">Full API reference</div>
+            </a>
+            <a href="https://github.com/Nebelus/examples" class="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-600 transition-all">
+              <div class="font-semibold text-gray-800 mb-1">🔧 GitHub Repo</div>
+              <div class="text-sm text-gray-600">Source code & examples</div>
+            </a>
+            <a href="https://nebelus.ai/support" class="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-600 transition-all">
+              <div class="font-semibold text-gray-800 mb-1">💬 Support</div>
+              <div class="text-sm text-gray-600">Get help</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="mt-16 text-center text-white/80">
+      <p class="mb-2">Built with ❤️ by the Nebelus team</p>
+      <p class="text-sm">© 2025 Nebelus AI. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
