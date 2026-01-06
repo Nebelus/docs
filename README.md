@@ -81,7 +81,7 @@ See [vanillajs/readme.md](./vanillajs/readme.md) for detailed documentation.
 ### 2. WebSocket Chat Example
 A complete chat application demonstrating the WebSocket API for real-time bidirectional communication with AI agents.
 
-**Location:** `websocket-chat/`
+**Location:** `ws-chat/`
 
 **Features:**
 - Pure WebSocket implementation (no SSE fallback)
@@ -103,7 +103,7 @@ make ws-chat
 
 Or manually:
 ```bash
-cd websocket-chat
+cd ws-chat
 python3 -m http.server 8082
 ```
 
@@ -113,6 +113,8 @@ python3 -m http.server 8082
 3. Enter your API key
 4. Optionally enter a Thread ID to continue an existing conversation
 5. Click "Connect" to start chatting
+
+See [vanillajs/readme.md](./vanillajs/readme.md) for detailed documentation.
 
 ### 3. SSE Chat Example
 A chat application using Server-Sent Events (SSE) for streaming AI responses. This is a simpler alternative to WebSocket for request/response patterns.
