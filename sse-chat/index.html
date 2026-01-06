@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nebelus SSE Chat Example</title>
+  <script src="https://unpkg.com/tailwindcss-cdn@3.4.3/tailwindcss.js"></script>
+  <style>
+    .streaming-cursor {
+      display: inline-block;
+      width: 6px;
+      height: 16px;
+      background-color: #6366f1;
+      margin-left: 2px;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-600 to-purple-600 p-5">
+  <!--
+  ============================================
+  NEBELUS SSE CHAT EXAMPLE
+  ============================================
+
+  This example demonstrates text-based chat with AI agents using
+  Server-Sent Events (SSE) for streaming responses.
+
+  QUICK START:
+  ------------
+  1. Open this file in a browser (serve via HTTP)
+  2. Enter your API Key (sk-ns-org-...)
+  3. Enter your Agent ID (UUID)
+  4. Start chatting!
+
+  SSE vs WebSocket:
+  -----------------
+  - SSE: HTTP request/response with streaming. Simple, works through proxies.
+  - WebSocket: Bidirectional persistent connection. Better for real-time push.
+
+  This example uses SSE because chat is request/response pattern.
+
+  CODE EXAMPLE:
+  -------------
+  ```javascript
+  const response = await fetch(`${apiUrl}/api/agents/${agentId}/chat/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      messages: [{ role: 'user', content: 'Hello!' }]
+    })
+  });
+
+  // Parse SSE stream
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value);
+    // Parse SSE events from chunk...
+  }
+  ```
+  ============================================
+  -->
+
+  <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6">
+      <div class="flex items-center gap-4 mb-2">
+        <img src="https://storage.googleapis.com/nebelus-public/logo.png" alt="Nebelus Logo" class="h-10 w-auto">
+        <h1 class="text-2xl font-bold">SSE Chat Example</h1>
+      </div>
+      <p class="opacity-90 text-sm">Text-based AI Agent Chat using Server-Sent Events</p>
+    </div>
+
+    <div class="p-6">
+      <!-- Configuration Section -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Configuration</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="apiUrl" class="block text-sm font-medium text-gray-700 mb-1">API URL</label>
+            <input
+              type="text"
+              id="apiUrl"
+              value="https://api.nebelus.ai"
+              placeholder="https://api.nebelus.ai"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          </div>
+          <div>
+            <label for="agentId" class="block text-sm font-medium text-gray-700 mb-1">Agent ID <span class="text-red-500">*</span></label>
+            <input
+              type="text"
+              id="agentId"
+              placeholder="Enter agent UUID"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="apiKey" class="block text-sm font-medium text-gray-700 mb-1">API Key <span class="text-red-500">*</span></label>
+          <input
+            type="password"
+            id="apiKey"
+            placeholder="sk-ns-org-..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          <p class="mt-1 text-xs text-gray-500">Your API key is sent as a Bearer token in the Authorization header.</p>
+        </div>
+
+        <div class="mb-4">
+          <label for="threadId" class="block text-sm font-medium text-gray-700 mb-1">Thread ID (optional)</label>
+          <input
+            type="text"
+            id="threadId"
+            placeholder="Leave empty to create new thread"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          <p class="mt-1 text-xs text-gray-500">Continue an existing conversation by entering its thread ID.</p>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div class="mb-4">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-lg font-semibold text-gray-800">Chat</h2>
+          <button
+            id="clearBtn"
+            onclick="chat.clearChat()"
+            class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
+            Clear
+          </button>
+        </div>
+        <div id="chatMessages" class="h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-3">
+          <p class="text-center text-gray-400 py-10">Enter your Agent ID and API Key to start chatting.</p>
+        </div>
+      </div>
+
+      <!-- Message Input -->
+      <div class="flex gap-2">
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Type your message..."
+          class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        <button
+          id="sendBtn"
+          onclick="chat.sendMessage()"
+          class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0">
+          Send
+        </button>
+        <button
+          id="cancelBtn"
+          onclick="chat.cancelRequest()"
+          disabled
+          class="px-4 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Cancel
+        </button>
+      </div>
+
+      <!-- Usage Info -->
+      <div id="usageInfo" class="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600 hidden">
+        <div class="flex items-center gap-4">
+          <span>Input: <strong id="inputTokens">0</strong> tokens</span>
+          <span>Output: <strong id="outputTokens">0</strong> tokens</span>
+          <span>Model: <strong id="modelName">-</strong></span>
+        </div>
+      </div>
+
+      <!-- Debug Panel -->
+      <details class="mt-6">
+        <summary class="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-800">
+          Debug Log
+        </summary>
+        <div id="debugLog" class="mt-2 h-48 overflow-y-auto bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+          <p class="text-gray-500">SSE events will appear here...</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
