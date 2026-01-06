@@ -8,12 +8,12 @@ The Agents WebSocket API provides real-time bidirectional communication for AI a
 
 ### New Thread (creates thread on connect)
 ```
-wssA://api.nebelus.ai/ws/agents/<agent_id>/chat/
+wss://api.nebelus.ai/ws/agents/<agent_id>/chat/
 ```
 
 ### Existing Thread (continues conversation)
 ```
-wssA://api.nebelus.ai/ws/agents/<agent_id>/threads/<thread_id>/
+wss://api.nebelus.ai/ws/agents/<agent_id>/threads/<thread_id>/
 ```
 
 ## Authentication
@@ -28,7 +28,7 @@ Pass the API key and Origin header when connecting:
 async with websockets.connect(
     uri,
     additional_headers={"Authorization": f"{api_key}"}
-) as wssA:
+) as wss:
     ...
 ```
 
@@ -41,12 +41,12 @@ async with websockets.connect(
 For browser WebSocket connections where headers aren't supported:
 
 ```
-wssA://api.nebelus.ai/ws/agents/<agent_id>/chat/?api_key=sk-ns-org-...
+wss://api.nebelus.ai/ws/agents/<agent_id>/chat/?api_key=sk-ns-org-...
 ```
 
 Or with access token:
 ```
-wssA://api.nebelus.ai/ws/agents/<agent_id>/chat/?token=<access_token>
+wss://api.nebelus.ai/ws/agents/<agent_id>/chat/?token=<access_token>
 ```
 
 ## Connection Flow
@@ -389,7 +389,7 @@ Error occurred:
 
 ```javascript
 const ws = new WebSocket(
-  'wssA://api.nebelus.ai/ws/agents/8db77b86-21cb-4fca-869f-7c80b1a7d49b/chat/?api_key=sk-ns-org-...'
+  'wss://api.nebelus.ai/ws/agents/8db77b86-21cb-4fca-869f-7c80b1a7d49b/chat/?api_key=sk-ns-org-...'
 );
 
 ws.onopen = () => {
