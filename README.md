@@ -216,7 +216,7 @@ The Nebelus WebSocket API provides real-time bidirectional communication with AI
 # Python (websockets library)
 async with websockets.connect(
     uri,
-    additional_headers={"Authorization": f"Bearer {api_key}"}
+    additional_headers={"Authorization": f"{api_key}"}
 ) as ws:
     ...
 ```
@@ -240,9 +240,9 @@ async def chat_with_agent():
 
     async with websockets.connect(
         uri,
-        additional_headers={"Authorization": f"Bearer {api_key}"}
+        additional_headers={"Authorization": f"{api_key}"}
     ) as wss:
-        # Wait for connection
+        # Wait for connection event
         msg = json.loads(await wss.recv())
         if msg["event"] == "connection":
             print(f"Connected! Thread: {msg['data']['thread_id']}")
@@ -263,6 +263,10 @@ async def chat_with_agent():
 
             elif msg["event"] == "message_stop":
                 print("\nResponse complete")
+                break
+
+            elif msg["event"] == "error":
+                print(f"Error: {msg['data']['message']}")
                 break
 
 
@@ -498,7 +502,7 @@ export function useAgentChat(agentId: string, apiKey: string) {
 5. **Cancellation**: Use `cancel` for long responses when needed
 6. **Token Refresh**: Reconnect with new token before expiry
 
-For complete API documentation, see the [WebSocket API Reference](../server/docs/websocket-api.md).
+For complete API documentation, see the [WebSocket API Reference](./ws-chat/readme.md).
 
 ## SSE API Usage
 
