@@ -112,12 +112,17 @@ class NebelusSSEChat {
 
     try {
       // Build endpoint URL
-      let endpoint = `${apiUrl}/api/agents/${agentId}/chat/`
+      const endpoint = `${apiUrl}/api/agents/${agentId}/chat/`
+
+      // Build request body - include thread_id if provided
+      const requestBody = {
+        messages: [{ role: "user", content }]
+      }
       if (threadId) {
-        endpoint += `?thread_id=${threadId}`
+        requestBody.thread_id = threadId
       }
 
-      this.logDebug("request", { endpoint, content: content.substring(0, 50) + "..." })
+      this.logDebug("request", { endpoint, thread_id: threadId || "(new)", content: content.substring(0, 50) + "..." })
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -126,9 +131,7 @@ class NebelusSSEChat {
           Accept: "text/event-stream",
           Authorization: `Bearer ${apiKey}`
         },
-        body: JSON.stringify({
-          messages: [{ role: "user", content }]
-        }),
+        body: JSON.stringify(requestBody),
         signal: this.abortController.signal
       })
 
