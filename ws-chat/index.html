@@ -363,6 +363,133 @@
     .usage-label {
       color: #52525b;
     }
+
+    /* Snippets Panel Styles */
+    .snippets-panel {
+      margin-top: 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .snippets-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+    }
+
+    .snippets-header h3 {
+      font-size: 0.9rem;
+      color: #a1a1aa;
+    }
+
+    .snippets-toggle {
+      font-size: 0.8rem;
+      color: #6366f1;
+    }
+
+    .snippets-content {
+      display: none;
+      padding: 16px;
+    }
+
+    .snippets-content.show {
+      display: block;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #a1a1aa;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e4e4e7;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border-color: transparent;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .code-block {
+      border-radius: 8px;
+      overflow: hidden;
+      background: #282c34;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .code-header span {
+      font-size: 0.8rem;
+      color: #a1a1aa;
+    }
+
+    .copy-btn {
+      padding: 4px 12px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 4px;
+      color: #6366f1;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(99, 102, 241, 0.3);
+    }
+
+    .copy-btn.copied {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
@@ -442,8 +569,198 @@
       </div>
       <div class="debug-content" id="debugContent"></div>
     </div>
+
+    <!-- Code Snippets Section -->
+    <div class="snippets-panel">
+      <div class="snippets-header" id="snippetsHeader">
+        <h3>Code Snippets</h3>
+        <span class="snippets-toggle" id="snippetsToggle">Show</span>
+      </div>
+      <div class="snippets-content" id="snippetsContent">
+        <div class="tabs">
+          <button class="tab active" data-tab="connect">Connect</button>
+          <button class="tab" data-tab="send">Send Message</button>
+          <button class="tab" data-tab="events">Handle Events</button>
+          <button class="tab" data-tab="cancel">Cancel</button>
+          <button class="tab" data-tab="approval">Human Approval</button>
+        </div>
+
+        <!-- Connect Tab -->
+        <div class="tab-content active" id="tab-connect">
+          <div class="code-block">
+            <div class="code-header">
+              <span>Connection Setup</span>
+              <button class="copy-btn" onclick="copyCode('code-connect')">Copy</button>
+            </div>
+            <pre><code id="code-connect" class="language-javascript">// WebSocket Connection
+const apiUrl = 'wss://api.nebelus.ai';
+const agentId = 'your-agent-id';
+const apiKey = 'your-api-key';
+const threadId = null; // or existing thread ID
+
+let wsUrl;
+if (threadId) {
+  // Continue existing thread
+  wsUrl = `${apiUrl}/ws/agents/${agentId}/threads/${threadId}/?api_key=${apiKey}`;
+} else {
+  // Create new thread
+  wsUrl = `${apiUrl}/ws/agents/${agentId}/chat/?api_key=${apiKey}`;
+}
+
+const ws = new WebSocket(wsUrl);
+
+ws.onopen = () => console.log('Connected!');
+ws.onerror = (error) => console.error('Error:', error);
+ws.onclose = (event) => console.log('Disconnected:', event.code);</code></pre>
+          </div>
+        </div>
+
+        <!-- Send Message Tab -->
+        <div class="tab-content" id="tab-send">
+          <div class="code-block">
+            <div class="code-header">
+              <span>Send Chat Message</span>
+              <button class="copy-btn" onclick="copyCode('code-send')">Copy</button>
+            </div>
+            <pre><code id="code-send" class="language-javascript">// Send message via WebSocket
+const message = {
+  type: 'chat',
+  content: 'What is the weather today?'
+};
+
+ws.send(JSON.stringify(message));</code></pre>
+          </div>
+        </div>
+
+        <!-- Events Tab -->
+        <div class="tab-content" id="tab-events">
+          <div class="code-block">
+            <div class="code-header">
+              <span>Handle Server Events</span>
+              <button class="copy-btn" onclick="copyCode('code-events')">Copy</button>
+            </div>
+            <pre><code id="code-events" class="language-javascript">// WebSocket event handling
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+
+  switch (message.event) {
+    case 'connection':
+      const threadId = message.data.thread_id;
+      console.log('Thread:', threadId);
+      break;
+
+    case 'message_start':
+      console.log('Assistant is responding...');
+      break;
+
+    case 'content_block':
+      const { content_type, state, data } = message.data;
+      if (content_type === 'text' && state === 'delta') {
+        console.log(data.text); // Streaming text
+      }
+      break;
+
+    case 'message_stop':
+      console.log('Response complete');
+      break;
+
+    case 'usage_metadata':
+      console.log('Tokens:', message.data);
+      break;
+
+    case 'error':
+      console.error('Error:', message.data.message);
+      break;
+  }
+};</code></pre>
+          </div>
+        </div>
+
+        <!-- Cancel Tab -->
+        <div class="tab-content" id="tab-cancel">
+          <div class="code-block">
+            <div class="code-header">
+              <span>Cancel & Keep-Alive</span>
+              <button class="copy-btn" onclick="copyCode('code-cancel')">Copy</button>
+            </div>
+            <pre><code id="code-cancel" class="language-javascript">// Cancel ongoing generation
+ws.send(JSON.stringify({ type: 'cancel' }));
+
+// Keep-alive ping (every 30 seconds)
+setInterval(() => {
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'ping' }));
+  }
+}, 30000);</code></pre>
+          </div>
+        </div>
+
+        <!-- Human Approval Tab -->
+        <div class="tab-content" id="tab-approval">
+          <div class="code-block">
+            <div class="code-header">
+              <span>Human Approval Workflow</span>
+              <button class="copy-btn" onclick="copyCode('code-approval')">Copy</button>
+            </div>
+            <pre><code id="code-approval" class="language-javascript">// Handle human approval request
+case 'human_approval':
+  const tools = message.data.data?.tools || [];
+  console.log('Approval required for:', tools);
+
+  // Show approve/reject UI, then respond:
+  ws.send(JSON.stringify({
+    type: 'interrupt_resume',
+    decisions: [{ type: 'approve' }] // or 'reject'
+  }));
+  break;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
   <script src="app.js"></script>
+
+  <script>
+    // Initialize syntax highlighting
+    hljs.highlightAll();
+
+    // Tab switching
+    document.querySelectorAll('.tabs .tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Snippets panel toggle
+    document.getElementById('snippetsHeader').addEventListener('click', () => {
+      const content = document.getElementById('snippetsContent');
+      const toggle = document.getElementById('snippetsToggle');
+      content.classList.toggle('show');
+      toggle.textContent = content.classList.contains('show') ? 'Hide' : 'Show';
+    });
+
+    // Copy to clipboard
+    function copyCode(elementId) {
+      const code = document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
 </body>
 </html>

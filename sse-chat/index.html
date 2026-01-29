@@ -185,9 +185,323 @@
           <p class="text-gray-500">SSE events will appear here...</p>
         </div>
       </details>
+
+      <!-- Code Snippets Section -->
+      <details class="mt-6">
+        <summary class="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-800 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+          </svg>
+          Code Snippets
+        </summary>
+        <div class="mt-4 space-y-4">
+          <!-- Tabs -->
+          <div class="flex flex-wrap gap-2" id="sseTabs">
+            <button class="tab-btn active px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white" data-tab="sse-connect">Connection</button>
+            <button class="tab-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-tab="sse-send">Send Message</button>
+            <button class="tab-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-tab="sse-events">Parse Events</button>
+            <button class="tab-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-tab="sse-cancel">Cancel</button>
+            <button class="tab-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-tab="sse-full">Full Example</button>
+          </div>
+
+          <!-- Connection Tab -->
+          <div class="tab-panel" id="panel-sse-connect">
+            <div class="relative">
+              <div class="flex justify-between items-center bg-gray-800 text-gray-400 px-4 py-2 rounded-t-lg text-xs">
+                <span>SSE Connection via fetch</span>
+                <button onclick="copySnippet('code-sse-connect')" class="copy-snippet-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">Copy</button>
+              </div>
+              <pre class="bg-gray-900 text-gray-100 p-4 rounded-b-lg overflow-x-auto text-xs"><code id="code-sse-connect" class="language-javascript">// SSE Connection via fetch
+const apiUrl = 'https://api.nebelus.ai';
+const agentId = 'your-agent-id';
+const apiKey = 'your-api-key';
+const threadId = null; // or existing thread ID
+
+const endpoint = `${apiUrl}/api/agents/${agentId}/chat/`;
+const abortController = new AbortController();
+
+const requestBody = {
+  messages: [{ role: 'user', content: 'Hello!' }]
+};
+if (threadId) requestBody.thread_id = threadId;
+
+const response = await fetch(endpoint, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'text/event-stream',
+    'Authorization': `Bearer ${apiKey}`
+  },
+  body: JSON.stringify(requestBody),
+  signal: abortController.signal
+});</code></pre>
+            </div>
+          </div>
+
+          <!-- Send Message Tab -->
+          <div class="tab-panel hidden" id="panel-sse-send">
+            <div class="relative">
+              <div class="flex justify-between items-center bg-gray-800 text-gray-400 px-4 py-2 rounded-t-lg text-xs">
+                <span>Send Message (in request body)</span>
+                <button onclick="copySnippet('code-sse-send')" class="copy-snippet-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">Copy</button>
+              </div>
+              <pre class="bg-gray-900 text-gray-100 p-4 rounded-b-lg overflow-x-auto text-xs"><code id="code-sse-send" class="language-javascript">// SSE sends message in the initial fetch request body
+const response = await fetch(endpoint, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'text/event-stream',
+    'Authorization': `Bearer ${apiKey}`
+  },
+  body: JSON.stringify({
+    messages: [{ role: 'user', content: 'What is the weather today?' }],
+    thread_id: threadId // optional - to continue conversation
+  })
+});</code></pre>
+            </div>
+          </div>
+
+          <!-- Parse Events Tab -->
+          <div class="tab-panel hidden" id="panel-sse-events">
+            <div class="relative">
+              <div class="flex justify-between items-center bg-gray-800 text-gray-400 px-4 py-2 rounded-t-lg text-xs">
+                <span>Parse SSE Stream</span>
+                <button onclick="copySnippet('code-sse-events')" class="copy-snippet-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">Copy</button>
+              </div>
+              <pre class="bg-gray-900 text-gray-100 p-4 rounded-b-lg overflow-x-auto text-xs"><code id="code-sse-events" class="language-javascript">// Parse SSE stream with ReadableStream
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+let buffer = '';
+let fullContent = '';
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+
+  buffer += decoder.decode(value, { stream: true });
+  const messages = buffer.split('\n\n');
+  buffer = messages.pop() || '';
+
+  for (const message of messages) {
+    if (!message.trim()) continue;
+
+    const lines = message.split('\n');
+    let eventType = '';
+    let eventData = null;
+
+    for (const line of lines) {
+      if (line.startsWith('event: ')) {
+        eventType = line.slice(7).trim();
+      } else if (line.startsWith('data: ')) {
+        try {
+          eventData = JSON.parse(line.slice(6).trim());
+        } catch (e) {}
+      }
+    }
+
+    switch (eventType) {
+      case 'message_start':
+        if (eventData.thread_id) {
+          console.log('Thread:', eventData.thread_id);
+        }
+        break;
+
+      case 'content_block':
+        if (eventData.state === 'delta') {
+          fullContent += eventData.data?.text || '';
+          console.log(fullContent); // Streaming text
+        }
+        break;
+
+      case 'message_stop':
+        console.log('Response complete');
+        break;
+
+      case 'usage_metadata':
+        console.log('Tokens:', eventData.usage);
+        break;
+    }
+  }
+}
+reader.releaseLock();</code></pre>
+            </div>
+          </div>
+
+          <!-- Cancel Tab -->
+          <div class="tab-panel hidden" id="panel-sse-cancel">
+            <div class="relative">
+              <div class="flex justify-between items-center bg-gray-800 text-gray-400 px-4 py-2 rounded-t-lg text-xs">
+                <span>Cancel with AbortController</span>
+                <button onclick="copySnippet('code-sse-cancel')" class="copy-snippet-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">Copy</button>
+              </div>
+              <pre class="bg-gray-900 text-gray-100 p-4 rounded-b-lg overflow-x-auto text-xs"><code id="code-sse-cancel" class="language-javascript">// Create AbortController before request
+const abortController = new AbortController();
+
+// Start request with signal
+const response = await fetch(endpoint, {
+  method: 'POST',
+  headers: { /* ... */ },
+  body: JSON.stringify({ /* ... */ }),
+  signal: abortController.signal
+});
+
+// Cancel when needed (e.g., user clicks cancel button)
+abortController.abort();
+
+// Handle abort in catch block
+try {
+  // ... process stream
+} catch (error) {
+  if (error.name === 'AbortError') {
+    console.log('Request cancelled by user');
+  } else {
+    console.error('Error:', error);
+  }
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- Full Example Tab -->
+          <div class="tab-panel hidden" id="panel-sse-full">
+            <div class="relative">
+              <div class="flex justify-between items-center bg-gray-800 text-gray-400 px-4 py-2 rounded-t-lg text-xs">
+                <span>Complete SSE Chat Function</span>
+                <button onclick="copySnippet('code-sse-full')" class="copy-snippet-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors">Copy</button>
+              </div>
+              <pre class="bg-gray-900 text-gray-100 p-4 rounded-b-lg overflow-x-auto text-xs max-h-96"><code id="code-sse-full" class="language-javascript">async function sendSSEMessage(content, config) {
+  const { apiUrl, agentId, apiKey, threadId } = config;
+  const abortController = new AbortController();
+
+  const endpoint = `${apiUrl}/api/agents/${agentId}/chat/`;
+  const requestBody = {
+    messages: [{ role: 'user', content }]
+  };
+  if (threadId) requestBody.thread_id = threadId;
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(requestBody),
+      signal: abortController.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullContent = '';
+    let newThreadId = threadId;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const messages = buffer.split('\n\n');
+      buffer = messages.pop() || '';
+
+      for (const message of messages) {
+        if (!message.trim()) continue;
+
+        const lines = message.split('\n');
+        let eventType = '';
+        let eventData = null;
+
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            eventType = line.slice(7).trim();
+          } else if (line.startsWith('data: ')) {
+            try {
+              eventData = JSON.parse(line.slice(6).trim());
+            } catch (e) {}
+          }
+        }
+
+        if (eventType === 'message_start' && eventData?.thread_id) {
+          newThreadId = eventData.thread_id;
+        }
+        if (eventType === 'content_block' && eventData?.state === 'delta') {
+          fullContent += eventData.data?.text || '';
+          // Update UI with fullContent here
+        }
+      }
+    }
+    reader.releaseLock();
+
+    return { content: fullContent, threadId: newThreadId };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return { cancelled: true };
+    }
+    throw error;
+  }
+}
+
+// Usage
+const result = await sendSSEMessage('Hello!', {
+  apiUrl: 'https://api.nebelus.ai',
+  agentId: 'your-agent-id',
+  apiKey: 'your-api-key',
+  threadId: null
+});
+console.log(result);</code></pre>
+            </div>
+          </div>
+
+        </div>
+      </details>
     </div>
   </div>
 
+  <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
   <script src="app.js"></script>
+
+  <script>
+    // Initialize syntax highlighting
+    hljs.highlightAll();
+
+    // Tab switching for SSE snippets
+    document.querySelectorAll('#sseTabs .tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Update button styles
+        document.querySelectorAll('#sseTabs .tab-btn').forEach(b => {
+          b.classList.remove('bg-indigo-600', 'text-white');
+          b.classList.add('bg-gray-200', 'text-gray-700');
+        });
+        btn.classList.remove('bg-gray-200', 'text-gray-700');
+        btn.classList.add('bg-indigo-600', 'text-white');
+
+        // Show/hide panels
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        document.getElementById('panel-' + btn.dataset.tab).classList.remove('hidden');
+      });
+    });
+
+    // Copy to clipboard
+    function copySnippet(elementId) {
+      const code = document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('bg-green-600');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('bg-green-600');
+        }, 2000);
+      });
+    }
+  </script>
 </body>
 </html>

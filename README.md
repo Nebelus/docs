@@ -44,6 +44,8 @@ docs/
 │   ├── index.html                  # Main HTML file
 │   └── app.js                      # SSE streaming implementation
 │
+├── thread-id-usage.md              # Guide to thread ID usage for WS and SSE
+│
 └── vue/                            # Vue.js component docs
     └── TranslationApp.vue          # Real-time translation component
 ```
@@ -92,6 +94,7 @@ A complete chat application demonstrating the WebSocket API for real-time bidire
 - Token usage statistics
 - Debug event logging
 - Keep-alive ping/pong
+- **Interactive code snippets** with copy buttons (Connection, Send, Events, Cancel, Human Approval)
 
 **Usage:**
 
@@ -129,6 +132,7 @@ A chat application using Server-Sent Events (SSE) for streaming AI responses. Th
 - Cancel request support
 - Token usage statistics
 - Debug event logging
+- **Interactive code snippets** with copy buttons (Connection, Send, Events, Cancel, Full Example)
 
 **Usage:**
 
@@ -499,7 +503,7 @@ export function useAgentChat(agentId: string, apiKey: string) {
 
 1. **Keep-Alive**: Send `ping` every 30 seconds to prevent timeout
 2. **Reconnection**: Implement exponential backoff for reconnects
-3. **Thread Persistence**: Store `thread_id` to resume conversations
+3. **Thread Persistence**: Store `thread_id` to resume conversations (see [Thread ID Usage Guide](./thread-id-usage.md))
 4. **Error Handling**: Always handle `error` events gracefully
 5. **Cancellation**: Use `cancel` for long responses when needed
 6. **Token Refresh**: Reconnect with new token before expiry
@@ -631,7 +635,7 @@ controller.abort();
 
 1. **Use SSE for simple chat**: When you only need request/response, SSE is simpler than WebSocket
 2. **Use WebSocket for real-time**: When you need server push (voice, notifications), use WebSocket
-3. **Thread persistence**: Store `thread_id` from `message_start` to continue conversations
+3. **Thread persistence**: Store `thread_id` from `message_start` to continue conversations (see [Thread ID Usage Guide](./thread-id-usage.md))
 4. **Error handling**: Check response status and handle SSE parsing errors
 5. **Cancellation**: Always support cancellation for better UX
 
