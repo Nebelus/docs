@@ -344,7 +344,7 @@ ws.send(JSON.stringify({
   type: 'chat',
   content: 'What is the weather like today?',
   metadata: {
-    attachments: [] // optional file attachments
+    attachments: [] // optional file attachments (see File Attachments section below)
   }
 }));
 ```
@@ -375,6 +375,222 @@ ws.send(JSON.stringify({
   ]
 }));
 ```
+
+### File Attachments
+
+You can attach files to your chat messages by including them in the `metadata.attachments` array. Files must be base64-encoded.
+
+**Supported File Types:**
+- Documents: PDF, TXT, DOC, DOCX
+- Images: PNG, JPG, JPEG, GIF, WEBP
+- Code: JS, PY, TS, JSON, XML, HTML, CSS
+- Data: CSV, XLS, XLSX
+
+**JavaScript Example (File Upload):**
+```javascript
+// Function to convert file to base64
+function fileToBase64(file) {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = () => {
+			// Extract base64 data (remove data:type/subtype;base64, prefix)
+			const base64 = reader.result.split(',')[1];
+			resolve(base64);
+		};
+		reader.onerror = reject;
+		reader.readAsDataURL(file);
+	});
+}
+
+// Handle file input
+document.getElementById('fileInput').addEventListener('change', async (event) => {
+	const file = event.target.files[0];
+	if (!file) return;
+
+	// Convert file to base64
+	const base64Content = await fileToBase64(file);
+
+	// Send message with file attachment
+	ws.send(JSON.stringify({
+		type: 'chat',
+		content: 'Can you analyze this file?',
+		metadata: {
+			attachments: [{
+				name: file.name,
+				content_type: file.type,
+				data: base64Content
+			}]
+		}
+	}));
+});
+```
+
+**Python Example (File Upload):**
+```python
+import base64
+import json
+
+def send_message_with_file(ws, message, file_path):
+	# Read and encode file
+	with open(file_path, 'rb') as f:
+		file_data = base64.b64encode(f.read()).decode('utf-8')
+
+	# Get file info
+	import os
+	import mimetypes
+	file_name = os.path.basename(file_path)
+	content_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
+
+	# Send message with attachment
+	ws.send(json.dumps({
+		'type': 'chat',
+		'content': message,
+		'metadata': {
+			'attachments': [{
+				'name': file_name,
+				'content_type': content_type,
+				'data': file_data
+			}]
+		}
+	}))
+
+# Usage
+send_message_with_file(ws, 'Please review this document', '/path/to/document.pdf')
+```
+
+**Multiple Files:**
+```javascript
+// Send multiple files at once
+ws.send(JSON.stringify({
+	type: 'chat',
+	content: 'Compare these two documents',
+	metadata: {
+		attachments: [
+			{
+				name: 'document1.pdf',
+				content_type: 'application/pdf',
+				data: base64Data1
+			},
+			{
+				name: 'document2.pdf',
+				content_type: 'application/pdf',
+				data: base64Data2
+			}
+		]
+	}
+}));
+```
+
+**Image Analysis Example:**
+```javascript
+// Upload and analyze an image
+const imageFile = event.target.files[0];
+const base64Image = await fileToBase64(imageFile);
+
+ws.send(JSON.stringify({
+	type: 'chat',
+	content: 'What objects do you see in this image?',
+	metadata: {
+		attachments: [{
+			name: imageFile.name,
+			content_type: imageFile.type, // e.g., 'image/png'
+			data: base64Image
+		}]
+	}
+}));
+```
+
+**File Size Limits:**
+- Maximum file size: 10 MB per file
+- Maximum total attachment size per message: 25 MB
+- For larger files, consider splitting or using external storage with URLs
+
+### Resuming a Thread
+
+To continue a previous conversation, use the thread-specific endpoint with your stored thread ID:
+
+**JavaScript Example:**
+```javascript
+// Store thread ID when you first connect
+let currentThreadId = null;
+
+// Initial connection
+const ws = new WebSocket(
+	`wss://api.nebelus.ai/ws/agents/${agentId}/chat/?api_key=${apiKey}`
+);
+
+ws.onmessage = (event) => {
+	const msg = JSON.parse(event.data);
+
+	if (msg.event === 'connection') {
+		// Save the thread ID for later use
+		currentThreadId = msg.data.thread_id;
+		localStorage.setItem('nebelus_thread_id', currentThreadId);
+		console.log('New thread created:', currentThreadId);
+	}
+};
+
+// Later: Resume the conversation
+function resumeThread(threadId) {
+	const ws = new WebSocket(
+		`wss://api.nebelus.ai/ws/agents/${agentId}/threads/${threadId}/?api_key=${apiKey}`
+	);
+
+	ws.onopen = () => {
+		console.log('Resumed thread:', threadId);
+		// You can now continue the conversation
+		ws.send(JSON.stringify({
+			type: 'chat',
+			content: 'Continuing our previous conversation...'
+		}));
+	};
+
+	return ws;
+}
+
+// Resume the saved thread
+const savedThreadId = localStorage.getItem('nebelus_thread_id');
+if (savedThreadId) {
+	resumeThread(savedThreadId);
+}
+```
+
+**Python Example:**
+```python
+import asyncio
+import json
+import websockets
+
+async def resume_thread(agent_id, thread_id, api_key):
+	# Connect to existing thread
+	uri = f"wss://api.nebelus.ai/ws/agents/{agent_id}/threads/{thread_id}/"
+
+	async with websockets.connect(
+		uri,
+		additional_headers={"Authorization": f"{api_key}"}
+	) as wss:
+		# Wait for connection event
+		msg = json.loads(await wss.recv())
+		if msg["event"] == "connection":
+			print(f"Resumed thread: {msg['data']['thread_id']}")
+
+			# Continue conversation
+			await wss.send(json.dumps({
+				"type": "chat",
+				"content": "Let's continue where we left off"
+			}))
+
+			# Handle responses...
+			async for message in wss:
+				msg = json.loads(message)
+				# Process messages...
+
+# Usage
+thread_id = "saved_thread_id_from_previous_session"
+asyncio.run(resume_thread(agent_id, thread_id, api_key))
+```
+
+For more details on thread management, see the [Thread ID Usage Guide](./thread-id-usage.md).
 
 ### Server Events
 
@@ -629,6 +845,224 @@ fetch(endpoint, {
 
 // Cancel when needed
 controller.abort();
+```
+
+### File Attachments with SSE
+
+You can include file attachments in your SSE requests by adding them to the messages array:
+
+```javascript
+async function sendMessageWithFile(content, file) {
+	// Convert file to base64
+	const base64Data = await new Promise((resolve) => {
+		const reader = new FileReader();
+		reader.onload = () => {
+			const base64 = reader.result.split(',')[1];
+			resolve(base64);
+		};
+		reader.readAsDataURL(file);
+	});
+
+	// Prepare request with attachment
+	const response = await fetch(
+		`https://api.nebelus.ai/api/agents/${agentId}/chat/`,
+		{
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'Accept': 'text/event-stream',
+				'Authorization': `Bearer ${apiKey}`
+			},
+			body: JSON.stringify({
+				messages: [{
+					role: 'user',
+					content: content,
+					metadata: {
+						attachments: [{
+							name: file.name,
+							content_type: file.type,
+							data: base64Data
+						}]
+					}
+				}]
+			})
+		}
+	);
+
+	// Process SSE response...
+}
+
+// Usage with file input
+document.getElementById('fileInput').addEventListener('change', async (event) => {
+	const file = event.target.files[0];
+	await sendMessageWithFile('Can you analyze this document?', file);
+});
+```
+
+**Python Example with File:**
+```python
+import base64
+import requests
+import json
+
+def send_sse_with_file(agent_id, api_key, message, file_path):
+	# Read and encode file
+	with open(file_path, 'rb') as f:
+		file_data = base64.b64encode(f.read()).decode('utf-8')
+
+	# Get file info
+	import os
+	import mimetypes
+	file_name = os.path.basename(file_path)
+	content_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
+
+	# Prepare request
+	url = f"https://api.nebelus.ai/api/agents/{agent_id}/chat/"
+	headers = {
+		"Authorization": f"Bearer {api_key}",
+		"Content-Type": "application/json",
+		"Accept": "text/event-stream"
+	}
+	data = {
+		"messages": [{
+			"role": "user",
+			"content": message,
+			"metadata": {
+				"attachments": [{
+					"name": file_name,
+					"content_type": content_type,
+					"data": file_data
+				}]
+			}
+		}]
+	}
+
+	# Send request with streaming
+	response = requests.post(url, headers=headers, json=data, stream=True)
+
+	# Process SSE events...
+	for line in response.iter_lines():
+		if line:
+			# Parse SSE events
+			pass
+
+# Usage
+send_sse_with_file(agent_id, api_key, "Review this document", "document.pdf")
+```
+
+### Resuming Threads with SSE
+
+To continue a conversation, include the `thread_id` in your request body:
+
+**JavaScript Example:**
+```javascript
+async function sendMessageToThread(content, threadId) {
+	const requestBody = {
+		messages: [{ role: 'user', content }]
+	};
+
+	// Include thread_id to continue existing conversation
+	if (threadId) {
+		requestBody.thread_id = threadId;
+	}
+
+	const response = await fetch(
+		`https://api.nebelus.ai/api/agents/${agentId}/chat/`,
+		{
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'Accept': 'text/event-stream',
+				'Authorization': `Bearer ${apiKey}`
+			},
+			body: JSON.stringify(requestBody)
+		}
+	);
+
+	// Process SSE response and extract thread_id from message_start event
+	const reader = response.body.getReader();
+	const decoder = new TextDecoder();
+	let buffer = '';
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+
+		buffer += decoder.decode(value, { stream: true });
+		const messages = buffer.split('\n\n');
+		buffer = messages.pop() || '';
+
+		for (const message of messages) {
+			const lines = message.split('\n');
+			let eventType = '';
+			let eventData = null;
+
+			for (const line of lines) {
+				if (line.startsWith('event: ')) {
+					eventType = line.slice(7).trim();
+				} else if (line.startsWith('data: ')) {
+					try {
+						eventData = JSON.parse(line.slice(6).trim());
+					} catch (e) {}
+				}
+			}
+
+			// Save thread_id from first message
+			if (eventType === 'message_start' && eventData?.thread_id) {
+				localStorage.setItem('nebelus_thread_id', eventData.thread_id);
+				console.log('Thread ID:', eventData.thread_id);
+			}
+		}
+	}
+}
+
+// Start new conversation
+await sendMessageToThread('Hello!', null);
+
+// Continue conversation
+const savedThreadId = localStorage.getItem('nebelus_thread_id');
+await sendMessageToThread('Follow-up question', savedThreadId);
+```
+
+**Python Example:**
+```python
+def send_sse_message(agent_id, api_key, message, thread_id=None):
+	url = f"https://api.nebelus.ai/api/agents/{agent_id}/chat/"
+	headers = {
+		"Authorization": f"Bearer {api_key}",
+		"Content-Type": "application/json",
+		"Accept": "text/event-stream"
+	}
+
+	# Build request body
+	data = {
+		"messages": [{"role": "user", "content": message}]
+	}
+
+	# Include thread_id for continuation
+	if thread_id:
+		data["thread_id"] = thread_id
+
+	response = requests.post(url, headers=headers, json=data, stream=True)
+
+	# Process and extract thread_id
+	for line in response.iter_lines():
+		if line:
+			line_str = line.decode('utf-8')
+			if line_str.startswith('data: '):
+				try:
+					event_data = json.loads(line_str[6:])
+					if 'thread_id' in event_data:
+						return event_data['thread_id']
+				except:
+					pass
+
+# Usage
+thread_id = send_sse_message(agent_id, api_key, "Hello!")
+print(f"Thread created: {thread_id}")
+
+# Continue conversation
+send_sse_message(agent_id, api_key, "Follow-up", thread_id=thread_id)
 ```
 
 ### Best Practices
