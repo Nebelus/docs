@@ -1,7 +1,7 @@
 # Nebelus Examples - Makefile
 # Helper commands for testing example applications
 
-.PHONY: help vanilla-js vue-dev install-deps clean ws-chat sse-chat
+.PHONY: help vanilla-js vue-dev install-deps clean ws-chat sse-chat widget-docs widget
 
 # Default target
 help:
@@ -12,6 +12,8 @@ help:
 	@echo "  make vue-html       - Serve Vue translation app (standalone HTML) on http://localhost:8081"
 	@echo "  make ws-chat        - Serve WebSocket chat example on http://localhost:8082"
 	@echo "  make sse-chat       - Serve SSE chat example on http://localhost:8083"
+	@echo "  make widget         - Serve widget test/demo on http://localhost:8084"
+	@echo "  make widget-docs    - Open widget integration docs in browser"
 	@echo "  make vue-dev        - Run Vue examples in development mode (requires parent project)"
 	@echo "  make install-deps   - Install dependencies for testing"
 	@echo "  make clean          - Clean up temporary files"
@@ -83,6 +85,25 @@ sse-chat:
 	@echo ""
 	@cd sse-chat && python3 -m http.server 8083
 
+# Serve widget test/demo
+widget:
+	@echo "Starting widget test/demo..."
+	@echo "Open http://localhost:8084 in your browser"
+	@echo "Press Ctrl+C to stop the server"
+	@echo ""
+	@cd widget && python3 -m http.server 8084
+
+# Open widget integration docs
+widget-docs:
+	@echo "Opening widget integration docs..."
+	@if command -v xdg-open > /dev/null; then \
+		xdg-open widget-integration.md; \
+	elif command -v open > /dev/null; then \
+		open widget-integration.md; \
+	else \
+		echo "View docs at: $(CURDIR)/widget-integration.md"; \
+	fi
+
 # Alternative: serve SSE chat using Node.js http-server
 sse-chat-node:
 	@echo "Starting SSE chat example with Node.js..."
@@ -118,8 +139,8 @@ vue-dev:
 	@echo "  2. Run the dev server: npm run dev"
 	@echo "  3. Import components in your Vue app:"
 	@echo ""
-	@echo "     import TranslationApp from '@/examples/vue/TranslationApp.vue'"
-	@echo "     import MessageHistoryExample from '@/examples/vue/MessageHistoryExample.vue'"
+	@echo "     import TranslationApp from '@/docs/vue/TranslationApp.vue'"
+	@echo "     import MessageHistoryExample from '@/docs/vue/MessageHistoryExample.vue'"
 	@echo ""
 	@echo "  4. Use in template:"
 	@echo ""
@@ -195,6 +216,18 @@ test:
 		echo "✓ sse-chat/app.js found"; \
 	else \
 		echo "✗ sse-chat/app.js missing"; \
+	fi
+	@echo ""
+	@echo "Checking widget example..."
+	@if [ -f "widget/index.html" ]; then \
+		echo "✓ widget/index.html found"; \
+	else \
+		echo "✗ widget/index.html missing"; \
+	fi
+	@if [ -f "widget-integration.md" ]; then \
+		echo "✓ widget-integration.md found"; \
+	else \
+		echo "✗ widget-integration.md missing"; \
 	fi
 	@echo ""
 	@echo "All checks complete!"

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Thread Resume Test</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .header-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-title .dot { width: 8px; height: 8px; border-radius: 50%; background: #4f46e5; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+        .header-actions label { font-size: 11px; color: #94a3b8; font-weight: 500; }
+        .header-actions input[type="text"] {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            width: 110px;
+        }
+
+        /* ── Controls bar ── */
+        .controls {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .controls .sep {
+            width: 1px;
+            height: 24px;
+            background: #334155;
+        }
+        .controls-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .controls button {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .controls button:hover { background: #1e293b; border-color: #475569; }
+        .controls button.active {
+            background: #4f46e5;
+            color: #fff;
+            border-color: #4f46e5;
+        }
+        .controls button.destroy-btn {
+            background: #450a0a;
+            color: #fca5a5;
+            border-color: #7f1d1d;
+        }
+        .controls button.destroy-btn:hover { background: #7f1d1d; }
+        .controls button.clear-btn {
+            background: #422006;
+            color: #fcd34d;
+            border-color: #713f12;
+            margin-left: auto;
+        }
+        .controls button.clear-btn:hover { background: #713f12; }
+
+        /* ── State bar ── */
+        .state-bar {
+            background: #0f172a;
+            border-bottom: 1px solid #1e293b;
+            padding: 8px 20px;
+            font-size: 11px;
+            font-family: "SF Mono", "Fira Code", monospace;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        .state-bar .si { display: flex; gap: 6px; }
+        .state-bar .sl { color: #475569; }
+        .state-bar .sv { color: #e2e8f0; font-weight: 600; }
+        .state-bar .sv.none { color: #475569; font-style: italic; font-weight: 400; }
+
+        /* ── Main layout ── */
+        .main {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        /* ── Left: Snippet + content ── */
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* Snippet editor */
+        .snippet-section {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 12px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .snippet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .snippet-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .parsed-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        .parsed-badge.ok { background: #065f46; color: #6ee7b7; }
+        .parsed-badge.err { background: #7f1d1d; color: #fca5a5; }
+        .snippet-summary {
+            font-size: 11px;
+            color: #64748b;
+            font-family: monospace;
+        }
+        .snippet-summary span { color: #94a3b8; }
+        .snippet-editor {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .snippet-editor textarea {
+            width: 100%;
+            height: 160px;
+            background: transparent;
+            border: none;
+            color: #e2e8f0;
+            padding: 12px 14px;
+            font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+        }
+        .snippet-editor textarea::placeholder { color: #334155; }
+        .snippet-editor:focus-within { border-color: #4f46e5; }
+
+        /* Content area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            overflow-y: auto;
+            background: #0f172a;
+        }
+        .placeholder {
+            text-align: center;
+            color: #475569;
+        }
+        .placeholder h2 { font-size: 1.3rem; margin-bottom: 10px; color: #64748b; }
+        .placeholder p { line-height: 1.8; font-size: 13px; }
+        .placeholder .step { color: #4f46e5; font-weight: 600; }
+        .session-info {
+            text-align: center;
+            max-width: 500px;
+        }
+        .session-info h2 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            color: #818cf8;
+        }
+        .session-info p { color: #64748b; margin-bottom: 16px; font-size: 13px; }
+        .session-info .info-table {
+            text-align: left;
+            font-size: 12px;
+            width: 100%;
+            font-family: monospace;
+        }
+        .session-info .info-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #1e293b;
+            word-break: break-all;
+        }
+        .session-info .info-table td:first-child {
+            color: #64748b;
+            font-weight: 500;
+            width: 140px;
+            word-break: normal;
+        }
+
+        /* ── Right: Debug panel ── */
+        .debug-panel {
+            width: 380px;
+            background: #0f172a;
+            border-left: 1px solid #1e293b;
+            font-family: "SF Mono", "Fira Code", monospace;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .debug-header {
+            padding: 10px 14px;
+            background: #1e293b;
+            font-weight: 600;
+            font-size: 12px;
+            color: #f1f5f9;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .debug-header button {
+            background: #334155;
+            color: #94a3b8;
+            border: none;
+            padding: 3px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .debug-header button:hover { background: #475569; }
+        .debug-section {
+            padding: 10px 14px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .debug-section h4 {
+            color: #475569;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .debug-section .storage-list {
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        .kv-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            gap: 8px;
+        }
+        .kv-key { color: #a78bfa; }
+        .kv-val { color: #34d399; word-break: break-all; text-align: right; }
+        .debug-log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 14px;
+        }
+        .debug-log .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #1e293b44;
+            line-height: 1.6;
+        }
+        .log-time { color: #475569; }
+        .log-event { font-weight: 600; }
+        .log-event.ready { color: #34d399; }
+        .log-event.new-thread { color: #f59e0b; }
+        .log-event.message { color: #60a5fa; }
+        .log-event.error { color: #f87171; }
+        .log-event.title-update { color: #c084fc; }
+        .log-event.lifecycle { color: #fb923c; }
+        .log-data { color: #64748b; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title">
+            <span class="dot"></span>
+            Thread Resume Test
+        </div>
+        <div class="header-actions">
+            <label>Base User ID</label>
+            <input type="text" id="input-user-id" value="user-42" placeholder="user-42">
+        </div>
+    </div>
+
+    <!-- Session Controls -->
+    <div class="controls">
+        <span class="controls-label">Session</span>
+        <button onclick="openSession('session-A')">Session A</button>
+        <button onclick="openSession('session-B')">Session B</button>
+        <button onclick="openSession('session-C')">Session C</button>
+        <div class="sep"></div>
+        <button class="destroy-btn" onclick="leaveSession()">End Session</button>
+        <button class="clear-btn" onclick="clearAllStorage()">Clear Storage</button>
+    </div>
+
+    <!-- State bar -->
+    <div class="state-bar">
+        <div class="si"><span class="sl">session:</span><span class="sv none" id="st-session">none</span></div>
+        <div class="si"><span class="sl">userId:</span><span class="sv none" id="st-userid">none</span></div>
+        <div class="si"><span class="sl">stored threadId:</span><span class="sv none" id="st-threadid">none</span></div>
+        <div class="si"><span class="sl">widget threadId:</span><span class="sv none" id="st-widget-thread">none</span></div>
+    </div>
+
+    <!-- Main layout -->
+    <div class="main">
+        <!-- Left: snippet + content -->
+        <div class="left-panel">
+            <div class="snippet-section">
+                <div class="snippet-header">
+                    <div class="snippet-label">
+                        Embed Snippet
+                        <span class="parsed-badge" id="parsed-badge"></span>
+                    </div>
+                    <div class="snippet-summary" id="parsed-summary"></div>
+                </div>
+                <div class="snippet-editor">
+                    <textarea id="snippet-input" spellcheck="false" placeholder="Paste your full widget embed snippet here, e.g.:
+
+<!-- Nebelus Chat Widget -->
+<script src=&quot;https://cdn.nebelus.ai/nebelus-widget.js&quot;></script>
+<script>
+  NebelusWidget.init({
+    apiKey: 'sk-...',
+    agentId: '...',
+    deploymentId: '...',
+    ...
+  })
+</script>"></textarea>
+                </div>
+            </div>
+
+            <div class="content-area" id="content-area">
+                <div class="placeholder">
+                    <h2>No Session Active</h2>
+                    <p><span class="step">1.</span> Paste your full widget embed snippet above<br>
+                       <span class="step">2.</span> Click a session button to initialize the widget<br>
+                       <span class="step">3.</span> The widget will init with userId = baseUserId + sessionId<br>
+                       <span class="step">4.</span> Check the debug panel for onNewThread events</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: debug panel -->
+        <div class="debug-panel">
+            <div class="debug-header">
+                Debug Console
+                <button onclick="clearLog()">Clear</button>
+            </div>
+            <div class="debug-section">
+                <h4>Thread Storage (localStorage)</h4>
+                <div class="storage-list" id="storage-list"></div>
+            </div>
+            <div class="debug-section">
+                <h4>Widget Internal State</h4>
+                <div id="widget-state-display"><span style="color:#475569;">No widget active</span></div>
+            </div>
+            <div class="debug-log" id="debug-log"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.nebelus.ai/nebelus-widget.js"></script>
+    <script>
+        var STORAGE_PREFIX = 'nebelus_spa_thread_';
+        var activeSession = null;
+        var stateInterval = null;
+        var parsedConfig = null;
+
+        function parseSnippet(snippet) {
+            if (!snippet || !snippet.trim()) return null;
+            try {
+                var match = snippet.match(/NebelusWidget\.init\s*\(\s*(\{[\s\S]*\})\s*\)/);
+                if (!match) return null;
+                var obj = new Function('return (' + match[1] + ')')();
+                return obj && typeof obj === 'object' ? obj : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function updateParsedStatus() {
+            var snippet = document.getElementById('snippet-input').value;
+            var badge = document.getElementById('parsed-badge');
+            var summary = document.getElementById('parsed-summary');
+            parsedConfig = parseSnippet(snippet);
+
+            if (!snippet.trim()) {
+                badge.textContent = '';
+                badge.className = 'parsed-badge';
+                summary.innerHTML = '';
+                return;
+            }
+
+            if (parsedConfig) {
+                badge.textContent = 'Parsed';
+                badge.className = 'parsed-badge ok';
+                var parts = [];
+                if (parsedConfig.agentId) parts.push('agent: <span>' + parsedConfig.agentId.substring(0, 8) + '...</span>');
+                if (parsedConfig.deploymentId) parts.push('deploy: <span>' + parsedConfig.deploymentId.substring(0, 8) + '...</span>');
+                if (parsedConfig.apiKey) parts.push('key: <span>...' + parsedConfig.apiKey.slice(-6) + '</span>');
+                summary.innerHTML = parts.join(' &middot; ');
+            } else {
+                badge.textContent = 'Parse Error';
+                badge.className = 'parsed-badge err';
+                summary.innerHTML = '<span style="color:#f87171;">Could not find NebelusWidget.init({...})</span>';
+            }
+        }
+
+        document.getElementById('snippet-input').addEventListener('input', function() {
+            localStorage.setItem('nebelus_spa_snippet', this.value);
+            updateParsedStatus();
+            if (activeSession && parsedConfig) {
+                logEvent('CONFIG CHANGED', { reinitializing: activeSession }, 'lifecycle');
+                openSession(activeSession);
+            }
+        });
+
+        function getBaseUserId() {
+            return document.getElementById('input-user-id').value.trim() || 'user-42';
+        }
+
+        document.getElementById('input-user-id').addEventListener('input', function() {
+            localStorage.setItem('nebelus_spa_user_id', this.value);
+        });
+
+
+        function composeUserId(baseUserId, sessionId) {
+            return baseUserId + '-' + sessionId;
+        }
+
+        function getStoredThreadId(userId) {
+            return localStorage.getItem(STORAGE_PREFIX + userId) || null;
+        }
+
+        function storeThreadId(userId, threadId) {
+            localStorage.setItem(STORAGE_PREFIX + userId, threadId);
+            refreshStorageDisplay();
+        }
+
+        function logEvent(eventName, data, cssClass) {
+            var container = document.getElementById('debug-log');
+            var time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            var entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML =
+                '<span class="log-time">' + time + '</span> ' +
+                '<span class="log-event ' + (cssClass || '') + '">' + eventName + '</span> ' +
+                '<span class="log-data">' + (data ? JSON.stringify(data) : '') + '</span>';
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('debug-log').innerHTML = '';
+        }
+
+        function refreshStorageDisplay() {
+            var container = document.getElementById('storage-list');
+            var html = '';
+            for (var i = 0; i < localStorage.length; i++) {
+                var key = localStorage.key(i);
+                if (key.startsWith(STORAGE_PREFIX)) {
+                    var shortKey = key.replace(STORAGE_PREFIX, '');
+                    var val = localStorage.getItem(key);
+                    html += '<div class="kv-row"><span class="kv-key">' + shortKey + '</span><span class="kv-val">' + val + '</span></div>';
+                }
+            }
+            container.innerHTML = html || '<span style="color:#475569;">No stored threads</span>';
+        }
+
+        function refreshStateBar() {
+            var baseUserId = getBaseUserId();
+            var sesEl = document.getElementById('st-session');
+            var uidEl = document.getElementById('st-userid');
+            var tidEl = document.getElementById('st-threadid');
+            var wtEl = document.getElementById('st-widget-thread');
+
+            if (activeSession) {
+                var userId = composeUserId(baseUserId, activeSession);
+                var storedThread = getStoredThreadId(userId);
+
+                sesEl.textContent = activeSession;
+                sesEl.classList.remove('none');
+                uidEl.textContent = userId;
+                uidEl.classList.remove('none');
+                tidEl.textContent = storedThread || 'none';
+                tidEl.classList.toggle('none', !storedThread);
+
+                var widgetThread = window.NebelusWidget && window.NebelusWidget.state ? window.NebelusWidget.state.currentThreadId : null;
+                wtEl.textContent = widgetThread || 'none';
+                wtEl.classList.toggle('none', !widgetThread);
+            } else {
+                sesEl.textContent = 'none'; sesEl.classList.add('none');
+                uidEl.textContent = 'none'; uidEl.classList.add('none');
+                tidEl.textContent = 'none'; tidEl.classList.add('none');
+                wtEl.textContent = 'none'; wtEl.classList.add('none');
+            }
+        }
+
+        function refreshWidgetStateDisplay() {
+            var el = document.getElementById('widget-state-display');
+            if (!window.NebelusWidget || !window.NebelusWidget.state) {
+                el.innerHTML = '<span style="color:#475569;">No widget active</span>';
+                return;
+            }
+            var s = window.NebelusWidget.state;
+            el.innerHTML =
+                '<div class="kv-row"><span class="kv-key">currentThreadId</span><span class="kv-val">' + (s.currentThreadId || 'null') + '</span></div>' +
+                '<div class="kv-row"><span class="kv-key">deploymentThreadId</span><span class="kv-val">' + (s.currentDeploymentThreadId || 'null') + '</span></div>' +
+                '<div class="kv-row"><span class="kv-key">deploymentUserId</span><span class="kv-val">' + (s.deploymentUserId || 'null') + '</span></div>' +
+                '<div class="kv-row"><span class="kv-key">isIdentified</span><span class="kv-val">' + s.isIdentified + '</span></div>' +
+                '<div class="kv-row"><span class="kv-key">threads.length</span><span class="kv-val">' + (s.threads ? s.threads.length : 0) + '</span></div>' +
+                '<div class="kv-row"><span class="kv-key">messages.length</span><span class="kv-val">' + (s.messages ? s.messages.length : 0) + '</span></div>';
+        }
+
+        function openSession(sessionId) {
+            if (!parsedConfig) {
+                alert('Please paste your widget embed snippet first.');
+                return;
+            }
+
+            if (activeSession) {
+                leaveSession(true);
+            }
+
+            activeSession = sessionId;
+            var baseUserId = getBaseUserId();
+            var userId = composeUserId(baseUserId, sessionId);
+            var storedThreadId = getStoredThreadId(userId);
+
+            logEvent('OPEN SESSION', { sessionId: sessionId, userId: userId, storedThreadId: storedThreadId }, 'lifecycle');
+
+            document.querySelectorAll('.controls button').forEach(function(btn) { btn.classList.remove('active'); });
+            document.querySelectorAll('.controls button').forEach(function(btn) {
+                if (btn.textContent.trim() === sessionId.replace('session-', 'Session ')) {
+                    btn.classList.add('active');
+                }
+            });
+
+            document.getElementById('content-area').innerHTML =
+                '<div class="session-info">' +
+                    '<h2>' + sessionId + '</h2>' +
+                    '<p>Widget initialized. Open the chat bubble to interact.</p>' +
+                    '<table class="info-table">' +
+                        '<tr><td>Session ID</td><td>' + sessionId + '</td></tr>' +
+                        '<tr><td>Composed userId</td><td>' + userId + '</td></tr>' +
+                        '<tr><td>Stored threadId</td><td id="info-stored-thread">' + (storedThreadId || '<em style="color:#475569;">none</em>') + '</td></tr>' +
+                        '<tr><td>agentId</td><td>' + (parsedConfig.agentId || '-') + '</td></tr>' +
+                        '<tr><td>deploymentId</td><td>' + (parsedConfig.deploymentId || '-') + '</td></tr>' +
+                    '</table>' +
+                '</div>';
+
+            localStorage.removeItem('nebelus_session');
+
+            if (window.NebelusWidget) {
+                window.NebelusWidget.state.currentThreadId = null;
+                window.NebelusWidget.state.currentDeploymentThreadId = null;
+                window.NebelusWidget.state.deploymentUserId = null;
+                window.NebelusWidget.state.isIdentified = false;
+                window.NebelusWidget.state.threads = [];
+                window.NebelusWidget.state.messages = [];
+                window.NebelusWidget.state.messageHistory = [];
+                window.NebelusWidget.state.sessionId = null;
+            }
+
+            var initConfig = Object.assign({}, parsedConfig, {
+                userId: userId,
+                debug: true,
+                enablePersistence: true,
+                persistSession: true,
+                onReady: function(data) {
+                    logEvent('onReady', data, 'ready');
+                    refreshStateBar();
+                    refreshWidgetStateDisplay();
+                },
+                onNewThread: function(data) {
+                    logEvent('onNewThread', data, 'new-thread');
+                    if (data && data.threadId) {
+                        storeThreadId(userId, data.threadId);
+                        logEvent('STORED threadId', { userId: userId, threadId: data.threadId }, 'new-thread');
+                        var infoCell = document.getElementById('info-stored-thread');
+                        if (infoCell) infoCell.textContent = data.threadId;
+                    } else {
+                        logEvent('WARNING: onNewThread fired without threadId!', data, 'error');
+                    }
+                    refreshStateBar();
+                    refreshWidgetStateDisplay();
+                },
+                onThreadTitleUpdate: function(data) {
+                    logEvent('onThreadTitleUpdate', data, 'title-update');
+                },
+                onMessage: function(data) {
+                    logEvent('onMessage', { role: data.role, contentLength: data.content ? data.content.length : 0 }, 'message');
+                    refreshStateBar();
+                    refreshWidgetStateDisplay();
+                },
+                onError: function(data) {
+                    logEvent('onError', data, 'error');
+                }
+            });
+
+
+            if (storedThreadId) {
+                initConfig.threadId = storedThreadId;
+                logEvent('PASSING threadId to init', { threadId: storedThreadId }, 'lifecycle');
+            } else {
+                delete initConfig.threadId;
+            }
+
+            logEvent('NebelusWidget.init()', { userId: userId, threadId: storedThreadId || null, agentId: initConfig.agentId }, 'lifecycle');
+            window.NebelusWidget.init(initConfig);
+
+            if (stateInterval) clearInterval(stateInterval);
+            stateInterval = setInterval(function() {
+                refreshStateBar();
+                refreshWidgetStateDisplay();
+                refreshStorageDisplay();
+            }, 1000);
+
+            refreshStateBar();
+            refreshStorageDisplay();
+        }
+
+        function leaveSession(silent) {
+            if (!activeSession && !silent) return;
+
+            if (!silent) {
+                logEvent('END SESSION', { sessionId: activeSession }, 'lifecycle');
+            }
+
+            if (window.NebelusWidget && window.NebelusWidget.destroy) {
+                window.NebelusWidget.destroy();
+                logEvent('NebelusWidget.destroy()', null, 'lifecycle');
+            }
+
+            activeSession = null;
+            document.querySelectorAll('.controls button').forEach(function(btn) { btn.classList.remove('active'); });
+
+            document.getElementById('content-area').innerHTML =
+                '<div class="placeholder">' +
+                    '<h2>No Session Active</h2>' +
+                    '<p><span class="step">1.</span> Paste your full widget embed snippet above<br>' +
+                    '<span class="step">2.</span> Click a session button to initialize the widget<br>' +
+                    '<span class="step">3.</span> The widget will init with userId = baseUserId + sessionId<br>' +
+                    '<span class="step">4.</span> Check the debug panel for onNewThread events</p>' +
+                '</div>';
+
+            if (stateInterval) {
+                clearInterval(stateInterval);
+                stateInterval = null;
+            }
+            refreshStateBar();
+            refreshWidgetStateDisplay();
+        }
+
+        function clearAllStorage() {
+            var keysToRemove = [];
+            for (var i = 0; i < localStorage.length; i++) {
+                var key = localStorage.key(i);
+                if (key.startsWith(STORAGE_PREFIX) || key === 'nebelus_session' || key === 'nebelus_fingerprint' || key === 'nebelus_spa_user_id' || key === 'nebelus_spa_snippet') {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
+            logEvent('CLEARED STORAGE', { removed: keysToRemove.length + ' keys' }, 'lifecycle');
+            refreshStorageDisplay();
+            refreshStateBar();
+        }
+
+        // Restore saved values from localStorage
+        var savedSnippet = localStorage.getItem('nebelus_spa_snippet');
+        if (savedSnippet) {
+            document.getElementById('snippet-input').value = savedSnippet;
+        }
+        var savedUserId = localStorage.getItem('nebelus_spa_user_id');
+        if (savedUserId) {
+            document.getElementById('input-user-id').value = savedUserId;
+        }
+
+        refreshStorageDisplay();
+        refreshStateBar();
+        updateParsedStatus();
+    </script>
+</body>
+</html>
