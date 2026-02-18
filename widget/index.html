@@ -330,7 +330,7 @@
         </div>
         <div class="header-actions">
             <label>Base User ID</label>
-            <input type="text" id="input-user-id" value="user-42" placeholder="user-42">
+            <input type="text" id="input-user-id" value="" placeholder="auto-generated">
         </div>
     </div>
 
@@ -466,12 +466,28 @@
             }
         });
 
+        function generateUserId() {
+            return 'user-' + Math.random().toString(36).substring(2, 10);
+        }
+
+        (function initUserId() {
+            var input = document.getElementById('input-user-id');
+            var stored = localStorage.getItem('nebelus_spa_base_user_id');
+            if (stored) {
+                input.value = stored;
+            } else {
+                var id = generateUserId();
+                input.value = id;
+                localStorage.setItem('nebelus_spa_base_user_id', id);
+            }
+        })();
+
         function getBaseUserId() {
-            return document.getElementById('input-user-id').value.trim() || 'user-42';
+            return document.getElementById('input-user-id').value.trim() || generateUserId();
         }
 
         document.getElementById('input-user-id').addEventListener('input', function() {
-            localStorage.setItem('nebelus_spa_user_id', this.value);
+            localStorage.setItem('nebelus_spa_base_user_id', this.value);
         });
 
 
