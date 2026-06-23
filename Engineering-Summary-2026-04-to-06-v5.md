@@ -333,6 +333,23 @@ per-section below.
 | ■ **Backlog drained** — partner sender-domain inheritance (own→partner→default); host-aware password-reset branding (brand by request host, not arbitrary first-org); public-branding `Cache-Control` was stripped by the `AddNoCacheControlCacheHeader` middleware → added an `X-Allow-Public-Cache` opt-out marker; pre-auth Tailwind buttons now consume `--brand-*` CSS vars |
 | ■ **Premise correction — host-branding colour clobber** — the portal host flow called `applyBranding` then `applyCustomDesign(null)`, each clearing the other's `--brand-*` var, so pre-auth brand colours never survived; `applyHostBranding()` now folds top-level + custom_design colours into one palette applied last |
 
+### WL-6 — Post-rollout fixes (Jun 23, from T2 / NovaLink production verification)
+
+| Item |
+|------|
+| ■ **`verified→active` auto-flip** (server #155) — `OrganizationInjectorMiddleware` resolved the tenant org from a custom domain only for `status='active'`, but nothing flipped the row after Caddy started serving (had to flip by hand in shell). Now flips `verified→active` (+`ssl_status`) on the first served request via a race-safe conditional UPDATE — the TLS request reaching Django proves the cert issued |
+| ■ **Login social-proof removed** (portal #68) — dropped the placeholder "Trusted by teams at TechCorp/InnovateCo/…" block (fake names; wrong on a customer-branded login page) |
+| ■ **Email Setup tab** (server #156 + portal #69) — dedicated Settings → Email Setup page consuming PR2's endpoints (sender address + SPF/DKIM/tracking + verify/delete, status-driven). **Premise correction:** `nebelus-branding-email-domain` was missing from `init_organization_modules` `default_off` → new orgs force-activated the premium module; fixed. Branding now applies immediately after Save (the store's per-user gate cleared the editing admin's just-saved values → re-asserted inline) |
+| ■ **WhatsApp interactive (quick_reply/button) extraction** (server #157, P1) — interactive button replies have no `text.body`; per-tenant `conversation_mapping` only extracted `text.body`, so the user's selection was silently dropped and T2's Patient Engagement agent kept re-asking. `extract_conversation_data` now falls back to `interactive.button_reply.title` / `list_reply.title` / `quick_reply.payload` when `message_text` is empty — universal, no per-tenant config change |
+| ■ **Email Setup DNS records persistence** (server #158) — `create_or_get_domain` only parsed Mailgun's create response, but `POST /v4/domains` does NOT return `sending_dns_records` → records were never saved (empty `email_dns_records`, save errored, row stuck at `pending`). Now always GETs the domain after create; status comes from the outcome (`failed`+reason on error, not a phantom `pending`). **Premise correction:** `pending` was set by the view's pre-save, not Mailgun success — a `pending`+empty-records row meant the call *failed*. Likely ops cause flagged: `MAILGUN_API_KEY` lacks domain-management scope (needs the account/primary key) |
+| ■ **Custom-theme menu highlight** (portal #70) — the side-menu selected/hover colour read `ui_options.theme.selected_item_color` (set only by presets); the org Custom Design's Highlight (`custom_design.selected_item_color`) only set CSS vars. `SideMenu` now resolves the highlight from the active custom design first, else the preset |
+
+### WL — Documentation (Jun 23, docs #1)
+
+| Item |
+|------|
+| ■ **Operations Runbook §2.11** — end-to-end custom-domain provisioning playbook (ask-flow architecture, 10-step, troubleshooting, Let's Encrypt rate-limit, clean revocation incl. Caddy Redis cert purge) + §2.10 partner-cascade provisioning. **Premise correction documented:** nothing flips `verified→active`/`ssl_status` automatically at the time (since fixed by #155); standing issues #85/#86 filed. `Infrastructure.md` + `Codebase Analysis.md` updated with the white-label edge/email architecture |
+
 ## Architecture Findings (Jun 14 – Jun 21)
 
 | Item |
